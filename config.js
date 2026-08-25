@@ -19,7 +19,7 @@ global.pakasir = {
 };
 
 global.stickpack = 'By';
-global.stickauth = ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ;
+global.stickauth = bots;
 
 global.multiplier = 38; // The higher, The harder levelup
 
