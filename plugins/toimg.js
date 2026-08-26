@@ -3,7 +3,7 @@
 
 // ===== مـعـلـومـات الـقـنـاة =====
 const channelName = 'ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ 🇲🇦'
-const CHANNEL_ID = '120363410733859643@newsletter'
+const CHANNEL_ID = '120363427685476208@newsletter'
 const newsletter = {
     forwardingScore: 999,
     isForwarded: true,
