@@ -1,31 +1,67 @@
-let handler = async (m, { usedPrefix, command, text }) => {
-	if (!text) throw `Teksnya mana?\n\nContoh:\n${usedPrefix + command} Hi @user\n\n@user = User Tag\n@subject = Nama Group\n@desc = Deskripsi Group`;
-	let chat = global.db.data.chats[m.chat];
+// ===== معلومات القناة SASUKE =====
+const channelName = 'ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ 🇲🇦'
+const CHANNEL_ID = '120363427685476208@newsletter'
+const newsletter = {
+    forwardingScore: 999,
+    isForwarded: true,
+    forwardedNewsletterMessageInfo: {
+        newsletterJid: CHANNEL_ID,
+        newsletterName: channelName
+    }
+}
+// =====================================
+
+let handler = async (m, { conn, usedPrefix, command, text }) => {
+	if (!text) return conn.sendMessage(m.chat, {
+        text: `*🎌 SASUKE GROUP SETTINGS*\n\n*❌ واين هو النص؟*\n\n*📌 المتغيرات المتاحة:*\n*@user* = مـنـشـن الـعـضـو\n*@subject* = اسـم الـمـجـمـوعـة\n*@desc* = وصـف الـمـجـمـوعـة\n*💡 مثال:*\n${usedPrefix + command} مـرحـبـا بـيـك @user فـي @subject\n\n*© SASUKE TECH*`,
+        contextInfo: newsletter
+    }, { quoted: m })
+	
+    let chat = global.db.data.chats[m.chat];
+    chat.sWelcome = chat.sWelcome || ''
+    chat.sBye = chat.sBye || ''
+    chat.sPromote = chat.sPromote || ''
+    chat.sDemote = chat.sDemote || ''
 
 	switch (command) {
-		case 'setwelcome':
+		case 'رسالة_الترحيب':
 			chat.sWelcome = text;
-			m.reply('✅ Pesan welcome berhasil diset:\n' + text);
+			await m.react('✅')
+			conn.sendMessage(m.chat, {
+                text: `*✅ تـم تـعـيـيـن رسـالـة الـتـرحـيـب*\n\n${text}\n\n*© SASUKE TECH*`,
+                contextInfo: newsletter
+            }, { quoted: m })
 			break;
-		case 'setbye':
+		case 'رسالة_المغادرة':
 			chat.sBye = text;
-			m.reply('✅ Pesan bye berhasil diset:\n' + text);
+			await m.react('✅')
+			conn.sendMessage(m.chat, {
+                text: `*✅ تـم تـعـيـيـن رسـالـة الـمـغـادرة*\n\n${text}\n\n*© SASUKE TECH*`,
+                contextInfo: newsletter
+            }, { quoted: m })
 			break;
-		case 'setpromote':
+		case 'رسالة_الترقية':
 			chat.sPromote = text;
-			m.reply('✅ Pesan promote berhasil diset:\n' + text);
+			await m.react('✅')
+			conn.sendMessage(m.chat, {
+                text: `*✅ تـم تـعـيـيـن رسـالـة الـتـرقـيـة*\n\n${text}\n\n*© SASUKE TECH*`,
+                contextInfo: newsletter
+            }, { quoted: m })
 			break;
-		case 'setdemote':
+		case 'رسالة_التنزيل':
 			chat.sDemote = text;
-			m.reply('✅ Pesan demote berhasil diset:\n' + text);
+			await m.react('✅')
+			conn.sendMessage(m.chat, {
+                text: `*✅ تـم تـعـيـيـن رسـالـة الـتـنـزيـل*\n\n${text}\n\n*© SASUKE TECH*`,
+                contextInfo: newsletter
+            }, { quoted: m })
 			break;
 	}
 };
 
-handler.help = ['welcome', 'bye', 'promote', 'demote'].map((v) => 'set' + v + ' <teks>');
-handler.tags = ['group'];
-handler.command = /^(setwelcome|setbye|setpromote|setdemote)$/i;
+handler.help = ['رسالة_الترحيب', 'رسالة_المغادرة', 'رسالة_الترقية', 'رسالة_التنزيل'];
+handler.tags = ['SASUKE', 'group'];
+handler.command = /^(رسالة_الترحيب|رسالة_المغادرة|رسالة_الترقية|رسالة_التنزيل)$/i;
 handler.group = true;
 handler.admin = true;
-
 export default handler;
