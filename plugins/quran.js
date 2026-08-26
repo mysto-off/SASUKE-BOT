@@ -1,0 +1,78 @@
+import axios from 'axios';
+
+// ===== معلومات القناة =====
+const channelName = 'ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ 🇲🇦'
+const CHANNEL_ID = '120363427685476208@newsletter' // <-- الـمـعـرف الـجـديـد
+const newsletter = {
+    forwardingScore: 999,
+    isForwarded: true,
+    forwardedNewsletterMessageInfo: {
+        newsletterJid: CHANNEL_ID,
+        newsletterName: channelName
+    }
+}
+// ========================
+
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+    if (!text) {
+        let list = `*📖 SASUKE قـرآن كـريـم*\n\n`
+        list += `*الـطـريـقـة:* ${usedPrefix}${command} <رقـم الـسـورة>\n\n`
+        list += `*امـثـلـة:*\n`
+        list += `• ${usedPrefix}${command} 1 → الـفـاتـحـة\n`
+        list += `• ${usedPrefix}${command} 36 → يـس\n`
+        list += `• ${usedPrefix}${command} 112 → الإخـلاص\n`
+        list += `*الـقـارئ:* أبـو بـكـر الـشـاطـري\n*© SASUKE TECH*`
+        return conn.sendMessage(m.chat, { text: list, contextInfo: newsletter }, { quoted: m });
+    }
+
+    let surahNumber = parseInt(text);
+    if (isNaN(surahNumber) || surahNumber < 1 || surahNumber > 114) {
+        return conn.sendMessage(m.chat, { 
+            text: `*❌ رقـم الـسـورة غـلـط*\n*خـص يـكـون مـن 1 لـ 114*`, 
+            contextInfo: newsletter 
+        }, { quoted: m });
+    }
+
+    await m.react('⏳');
+    let msg = await conn.sendMessage(m.chat, { 
+        text: `⏳ *SASUKE كـايـجـبـد سـورة ${surahNumber}...*`, 
+        contextInfo: newsletter 
+    }, { quoted: m });
+    
+    try {
+        let url = `https://server11.mp3quran.net/shatri/${String(surahNumber).padStart(3, '0')}.mp3`;
+        
+        let surahNames = ['الفاتحة', 'البقرة', 'آل عمران', 'النساء', 'المائدة', 'الأنعام', 'الأعراف', 'الأنفال', 'التوبة', 'يونس', 'هود', 'يوسف', 'الرعد', 'إبراهيم', 'الحجر', 'النحل', 'الإسراء', 'الكهف', 'مريم', 'طه', 'الأنبياء', 'الحج', 'المؤمنون', 'النور', 'الفرقان', 'الشعراء', 'النمل', 'القصص', 'العنكبوت', 'الروم', 'لقمان', 'السجدة', 'الأحزاب', 'سبأ', 'فاطر', 'يس', 'الصافات', 'ص', 'الزمر', 'غافر', 'فصلت', 'الشورى', 'الزخرف', 'الدخان', 'الجاثية', 'الأحقاف', 'محمد', 'الفتح', 'الحجرات', 'ق', 'الذاريات', 'الطور', 'النجم', 'القمر', 'الرحمن', 'الواقعة', 'الحديد', 'المجادلة', 'الحشر', 'الممتحنة', 'الصف', 'الجمعة', 'المنافقون', 'التغابن', 'الطلاق', 'التحريم', 'الملك', 'القلم', 'الحاقة', 'المعارج', 'نوح', 'الجن', 'المزمل', 'المدثر', 'القيامة', 'الإنسان', 'المرسلات', 'النبأ', 'النازعات', 'عبس', 'التكوير', 'الانفطار', 'المطففين', 'الانشقاق', 'البروج', 'الطارق', 'الأعلى', 'الغاشية', 'الفجر', 'البلد', 'الشمس', 'الليل', 'الضحى', 'الشرح', 'التين', 'العلق', 'القدر', 'البينة', 'الزلزلة', 'العاديات', 'القارعة', 'التكاثر', 'العصر', 'الهمزة', 'الفيل', 'قريش', 'الماعون', 'الكوثر', 'الكافرون', 'النصر', 'المسد', 'الإخلاص', 'الفلق', 'الناس'];
+        
+        let surahName = surahNames[surahNumber - 1];
+        
+        let caption = `*📖 سـورة ${surahName}*\n*🎙️ الـقـارئ:* أبـو بـكـر الـشـاطـري\n*✨ اسـتـمـع وتـدبـر*\n*© SASUKE TECH*`;
+        
+        await conn.sendMessage(m.chat, {
+            audio: { url: url },
+            mimetype: 'audio/mpeg',
+            fileName: `سورة_${surahName}_SASUKE.mp3`,
+            ptt: false,
+            caption: caption,
+            contextInfo: newsletter
+        }, { quoted: m });
+        
+        await conn.sendMessage(m.chat, { delete: msg.key }).catch(() => {})
+        await m.react('✅');
+        
+    } catch (e) {
+        console.error(e);
+        await m.react('❌');
+        conn.sendMessage(m.chat, { 
+            text: `*❌ فـشـل الـتـحـمـيـل*\n*جـرب مـرة أخـرى*`, 
+            contextInfo: newsletter 
+        }, { quoted: m });
+    }
+}
+
+handler.help = ['قران <رقم_السورة>', 'quran <surah_number>'];
+handler.tags = ['SASUKE', 'ادوات'];
+handler.command = /^(صوت_القران|قران|قرآن|quran|sasuke_quran)$/i;
+handler.limit = false;
+
+export default handler;
