@@ -1,84 +1,114 @@
+// © 𝗖𝗢𝗣𝗬𝗥𝗜𝗚𝗛𝗧 𝗕𝗬 𝗦𝗔𝗦𝗨𝗞𝗘 𝗧𝗘𝗖𝗛
 import * as cheerio from 'cheerio';
 
 const mediaRegex = /https?:\/\/(www\.)?mediafire\.com\/(file|folder)\/(\w+)/;
 
+// ===== مـعـلـومـات الـقـنـاة =====
+const channelName = 'ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ 🇲🇦'
+const newsletter = {
+    forwardingScore: 999,
+    isForwarded: true,
+    forwardedNewsletterMessageInfo: {
+        newsletterJid: '120363427685476208@newsletter', // <-- الـمـعـرف الـجـديـد
+        newsletterName: channelName
+    }
+}
+// =====================================
+
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-	if (!text) throw `Contoh:\n${usedPrefix}${command} https://www.mediafire.com/file/941xczxhn27qbby/GBWA_V12.25FF-By.SamMods-.apk/file`;
-	if (!mediaRegex.test(text)) throw 'Link tidak valid! Pastikan link Mediafire benar.';
 
-	try {
-		let res = await mediafire(text);
-		let caption = `
-*💌 Nama:* ${res.filename}
-*📊 Size:* ${res.sizeReadable}
-*🗂️ FileType :* ${res.filetype}
-*📦 MimeType:* ${res.mimetype}
-*🔐 Privasi:* ${res.privacy}
-*👤 Owner:* ${res.owner_name}
-`.trim();
+    if (!text) return conn.sendMessage(m.chat, {
+        text: `📌 *SASUKE MEDIAFIRE DOWNLOADER*\n\n*الـطـريـقـة:* ${usedPrefix}${command} <رابـط>\n*مـثـال:* ${usedPrefix}${command} https://www.mediafire.com/file/xxx/file`,
+        contextInfo: newsletter
+    }, { quoted: m })
 
-		await m.reply(caption);
-		await conn.sendMessage(
-			m.chat,
-			{
-				document: { url: res.download },
-				fileName: res.filename,
-				mimetype: res.mimetype,
-			},
-			{ quoted: m }
-		);
-	} catch (e) {
-		console.error(e);
-		m.reply('Gagal mengambil file dari Mediafire.');
-	}
+    if (!mediaRegex.test(text)) return conn.sendMessage(m.chat, {
+        text: `❌ *الـرابـط غـيـر صـالـح*\n\nالـرجـاء وضـع رابـط mediafire صـحـيـح`,
+        contextInfo: newsletter
+    }, { quoted: m })
+
+    try {
+        await conn.sendMessage(m.chat, {
+            text: `⏳ *SASUKE كـانـجـيـب الـمـلـف مـن mediafire...*`,
+            contextInfo: newsletter
+        }, { quoted: m })
+
+        let res = await mediafire(text);
+
+        let caption = `*📂 مـعـلـومـات الـمـلـف*\n\n`
+        caption += `*📌 الاسـم:* ${res.filename}\n`
+        caption += `*📊 الـحـجـم:* ${res.sizeReadable}\n`
+        caption += `*🗂️ الـنـوع:* ${res.filetype}\n`
+        caption += `*🔐 الـخـصـوصـيـة:* ${res.privacy}\n`
+        caption += `*👤 الـمـالـك:* ${res.owner_name}\n\n`
+        caption += `*© POWERED BY SASUKE TECH*`
+
+        await conn.sendMessage(
+            m.chat,
+            {
+                document: { url: res.download },
+                fileName: res.filename,
+                mimetype: res.mimetype,
+                caption: caption,
+                contextInfo: newsletter
+            },
+            { quoted: m }
+        );
+
+    } catch (e) {
+        console.error(e);
+        conn.sendMessage(m.chat, {
+            text: `❌ *فـشـل فـي جـلـب الـمـلـف*\n\n*الـخـطـأ:* ${e}\nتـحـقـق مـن الـرابـط وحـاول مـرة اخـرى`,
+            contextInfo: newsletter
+        }, { quoted: m })
+    }
 };
 
-handler.help = ['mediafire'];
-handler.tags = ['downloader'];
-handler.command = /^(mediafire|mf)$/i;
-handler.limit = true;
+handler.help = ['ميديافاير <الـرابـط>'];
+handler.tags = ['SASUKE', 'تـحـمـيـل'];
+handler.command = /^(ميديافاير|mediafire|mf)$/i;
+handler.limit = false;
+handler.register = false;
 
 export default handler;
 
 async function mediafire(url) {
-	const match = mediaRegex.exec(url);
-	if (!match) throw 'URL tidak valid!';
+    const match = mediaRegex.exec(url);
+    if (!match) throw 'Invalid URL!';
 
-	const id = match[3];
-	const response = await fetch(url);
-	const html = await response.text();
-	const $ = cheerio.load(html);
+    const id = match[3];
+    const response = await fetch(url);
+    const html = await response.text();
+    const $ = cheerio.load(html);
+    const download = $('a#downloadButton').attr('href');
+    if (!download) throw 'Failed to get download link from MediaFire page.';
 
-	const download = $('a#downloadButton').attr('href');
-	if (!download) throw 'Gagal mengambil link unduhan dari halaman Mediafire.';
+    const infoResponse = await fetch(`https://www.mediafire.com/api/1.5/file/get_info.php?response_format=json&quick_key=${id}`);
+    const json = await infoResponse.json();
+    if (json.response.result!== 'Success') throw 'Failed to fetch file information.';
 
-	const infoResponse = await fetch(`https://www.mediafire.com/api/1.5/file/get_info.php?response_format=json&quick_key=${id}`);
-	const json = await infoResponse.json();
+    const info = json.response.file_info;
+    const size = parseInt(info.size);
+    const ext = info.filename.split('.').pop();
 
-	if (json.response.result !== 'Success') throw 'Gagal mengambil info file.';
-	const info = json.response.file_info;
-
-	const size = parseInt(info.size);
-	const ext = info.filename.split('.').pop();
-
-	return {
-		filename: info.filename,
-		ext: ext,
-		size: size,
-		sizeReadable: formatBytes(size),
-		download: download,
-		filetype: info.filetype,
-		mimetype: info.mimetype || `application/${ext}`,
-		privacy: info.privacy,
-		owner_name: info.owner_name,
-	};
+    return {
+        filename: info.filename,
+        ext: ext,
+        size: size,
+        sizeReadable: formatBytes(size),
+        download: download,
+        filetype: info.filetype,
+        mimetype: info.mimetype || `application/${ext}`,
+        privacy: info.privacy,
+        owner_name: info.owner_name,
+    };
 }
 
 function formatBytes(bytes, decimals = 2) {
-	if (bytes === 0) return '0 Bytes';
-	const k = 1024;
-	const dm = decimals < 0 ? 0 : decimals;
-	const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-}
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+			}
