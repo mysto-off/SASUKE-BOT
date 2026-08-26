@@ -15,7 +15,7 @@ let handler = async (m, { text }) => {
 		}
 		conn.sendSticker(m.chat, media, m, exif);
 	} else {
-		m.reply('Kirim atau reply media untuk dijadikan stiker.');
+		m.reply(`الـرجـاء ارسـال او الـرد عـلـى صـورة/فـيـديـو/سـتـيـكـر لـتـحـويـلـه لـسـتـيـكـر|,.');
 	}
 };
 
