@@ -2,12 +2,12 @@ import { watchFile, unwatchFile } from 'fs';
 import chalk from 'chalk';
 import { fileURLToPath } from 'url';
 
-global.pairingNumber = 21271559798;
-global.owner = [['212698498657', 'Agus', true]];
+global.pairingNumber = +21260484016;
+global.owner = [['212710725533', 'ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ', true]];
 
-global.namebot = 'ChiiBOT - MD';
-global.author = 'Agus';
-global.source = 'https://chat.whatsapp.com/LF76mRDRwLlI4pdbMi0d5A?mode=hqrc';
+global.namebot = 'ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ';
+global.author = '';
+global.source = 'https://whatsapp.com/channel/0029VbCy4D4Fi8xm541ueW3D';
 
 global.wait = 'Loading...';
 global.eror = 'Terjadi Kesalahan...';
