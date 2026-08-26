@@ -1,14 +1,39 @@
-let handler = async (m, { command }) => {
-	if (command === 'linkgc') {
-		m.reply('https://chat.whatsapp.com/' + (await conn.groupInviteCode(m.chat)));
+// ===== معلومات القناة SASUKE =====
+const channelName = 'ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ 🇲🇦'
+const CHANNEL_ID = '120363427685476208@newsletter' // <-- الـمـعـرف الـجـديـد
+const newsletter = {
+  forwardingScore: 999,
+  isForwarded: true,
+  forwardedNewsletterMessageInfo: {
+    newsletterJid: CHANNEL_ID,
+    newsletterName: channelName
+  }
+}
+// ========================
+
+let handler = async (m, { conn, command }) => {
+	if (command === 'رابط_القروب' || command === 'linkgc') {
+		try {
+			let code = await conn.groupInviteCode(m.chat)
+			m.reply(`*🔗 رابـط قـروب SASUKE*\n\nhttps://chat.whatsapp.com/${code}\n\n*© SASUKE TECH*`, null, { contextInfo: newsletter })
+	} catch {
+			m.reply(`*❌ مـاقـدرتـش نـجـيـب الـرابـط*\n*تـأكـد انـي ادمـيـن*`, null, { contextInfo: newsletter })
 	}
-	if (command === 'revoke') {
-		m.reply('Berhasil Reset linkgc\n\nLink : https://chat.whatsapp.com/' + (await conn.groupRevokeInvite(m.chat)));
+	}
+	
+	if (command === 'تجديد_الرابط' || command === 'revoke') {
+		try {
+			let code = await conn.groupRevokeInvite(m.chat)
+			m.reply(`*✅ تـم تـجـديـد رابـط الـقـروب بـنـجـاح*\n\n*🔗 الـرابـط الـجـديـد:*\nhttps://chat.whatsapp.com/${code}\n\n*© SASUKE TECH*`, null, { contextInfo: newsletter })
+	} catch {
+			m.reply(`*❌ مـاقـدرتـش نـجـدد الـرابـط*\n*تـأكـد انـي ادمـيـن*`, null, { contextInfo: newsletter })
+		}
 	}
 };
-handler.help = ['linkgc', 'revoke'];
-handler.tags = ['group'];
-handler.command = /^(linkgc|revoke)$/i;
+
+handler.help = ['رابط_القروب', 'تجديد_الرابط', 'linkgc', 'revoke'];
+handler.tags = ['SASUKE', 'مجموعة'];
+handler.command = /^(رابط_القروب|تجديد_الرابط|linkgc|revoke|sasuke_link)$/i;
 handler.admin = true;
 handler.group = true;
 handler.botAdmin = true;
