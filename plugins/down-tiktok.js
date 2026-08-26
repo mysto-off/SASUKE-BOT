@@ -1,105 +1,82 @@
-let handler = async (m, { text, usedPrefix, command }) => {
-	try {
-		const input = m.quoted ? m.quoted.text : text;
-		const regex = /(https:\/\/(vt|vm)\.tiktok\.com\/[^\s]+|https:\/\/www\.tiktok\.com\/@[\w.-]+\/video\/\d+)/;
+import axios from 'axios'
 
-		const parseUrl = input.match(regex)?.[0];
-		if (parseUrl) {
-			m.react('🔁');
-			let res = await (await fetch(`https://www.tikwm.com/api/?url=${parseUrl}&hd=1`)).json();
-			if (!res || !res.data) 'Gagal mengambil data dari TikTok.';
+// ===== معلومات القناة SASUKE =====
+const channelName = 'ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ 🇲🇦'
+const CHANNEL_ID = '120363427685476208@newsletter'
+const newsletter = {
+    forwardingScore: 999,
+    isForwarded: true,
+    forwardedNewsletterMessageInfo: {
+        newsletterJid: CHANNEL_ID,
+        newsletterName: channelName
+    }
+}
+// =================================================
 
-			let data = res.data;
-			await m.reply(`# *TIKTOK DOWNLOADER*
+let handler = async (m, { conn, text, usedPrefix }) => {
 
-> *Judul*: ${data.title}
-> *Region*: ${data.region}
-> *Durasi*: ${formatDuration(data.duration)}
-> *Views*: ${formatNumber(data.play_count)}
-> *Komentar*: ${formatNumber(data.comment_count)}
-> *Share*: ${formatNumber(data.share_count)}
-> *Uploader*: ${data.author.nickname || data.author.unique_id}
+  if (!text) {
+    return conn.sendMessage(m.chat, {
+        text: `*📥 SASUKE TIKTOK DOWNLOADER*\n\n📌 *طـريـقـة الاسـتـعـمـال:* \`${usedPrefix}tiktok الـرابـط\`\n💡 *مـثـال:* \`${usedPrefix}tiktok https://vt.tiktok.com/xxx\`\n*© SASUKE TECH*`,
+        contextInfo: newsletter
+    }, { quoted: m })
+  }
 
-Mengirim.....`);
+  await m.react('⏳')
+  let s = await conn.sendMessage(m.chat, { text: '⏳ *SASUKE كـايـحـمـل فـيـديـو تـيـكـتـوك...*', contextInfo: newsletter }, { quoted: m })
 
-			if (data.images && data.images.length > 0) {
-				if (data.images.length < 2) {
-					for (let img of data.images) {
-						await conn.sendFile(m.chat, img, '', '', m);
-					}
-				} else {
-					let media = data.images.map((img) => ({
-						image: { url: img },
-					}));
-					await conn.sendAlbumMessage(m.chat, media, { quoted: m });
-				}
-			} else {
-				await conn.sendFile(m.chat, data.play, '', '', m);
-			}
+  try {
+    const encodedParams = new URLSearchParams()
+    encodedParams.set("url", text)
+    encodedParams.set("hd", "1")
 
-			if (data.music_info.play) {
-				await conn.sendMessage(
-					m.chat,
-					{
-						audio: { url: data.music_info.play },
-						mimetype: 'audio/mpeg',
-						fileName: `${data.title}.mp3`,
-					},
-					{ quoted: m }
-				);
-			} else {
-				m.reply('Musik tidak ditemukan, hanya akan mengirimkan media itu saja.');
-			}
-		} else if (input) {
-			let search = await (await fetch(`https://www.tikwm.com/api/feed/search?keywords=${input}&count=1&cursor=0&web=1&hd=1`)).json();
-			let video = search?.data?.videos[0];
-			if (!video) throw `Video tidak ditemukan untuk pencarian "${input}".`;
+    const { data } = await axios({
+        method: "POST",
+        url: "https://tikwm.com/api/",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            Cookie: "current_language=en",
+            "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36",
+        },
+        data: encodedParams,
+        timeout: 20000
+    })
 
-			let caption = `# *TIKTOK PLAYER*
+    if (!data.data || !data.data.play) {
+        return conn.sendMessage(m.chat, { text: '❌ *فـشـل فـجـلـب الـفـيـديـو.* الـرابـط مـاشـي صـحـيـح', edit: s.key, contextInfo: newsletter })
+    }
 
-> *Judul:* ${video.title}
-> *Region:* ${video.region}
-> *Durasi:* ${formatDuration(video.duration)}
-> *Views:* ${formatNumber(video.play_count)}
-> *Komentar:* ${formatNumber(video.comment_count)}
-> *Share:* ${formatNumber(video.share_count)}
-> *Uploader:* ${video.author.nickname || video.author.unique_id}
-`.trim();
-			conn.sendFile(m.chat, 'https://www.tikwm.com' + video.play, '', caption, m);
-		} else {
-			let cmd = usedPrefix + command;
-			m.reply(`*TIKTOK DOWNLOADER*
-> _*• Search:*_ \`${cmd} [query]\`
-> _*• Download:*_ \`${cmd} [link]\`
+    let v = data.data
+    let title = v.title || 'بـلا عـنـوان'
+    let author = v.author?.nickname || v.author?.unique_id || 'مـجـهـول'
+    let views = v.play_count?.toLocaleString() || '0'
+    let likes = v.digg_count?.toLocaleString() || '0'
+    let comments = v.comment_count?.toLocaleString() || '0'
+    let music = v.music_info?.title || 'مـوسـيـقـى'
 
-*C O N T O H:*
-> *• ${cmd}* cosplayer
-> *• ${cmd}* \`https://vt.tiktok.com/xxxxx\``);
-		}
-	} catch (err) {
-		console.error(err);
-		return m.reply('Terjadi kesalahan saat memproses permintaan');
-	}
-};
+    let caption = `*🔍 الـعـنـوان:* ${title}
+*📡 صـاحـب الـحـسـاب:* @${author}
+*🎵 الـصـوت:* ${music}
+*🎥 الـمـشـاهـدات:* ${views}
+*♥️ الاعـجـابـات:* ${likes}
+*🗯️ الـتـعـلـيـقـات:* ${comments}
 
-handler.help = ['tiktok'];
-handler.tags = ['downloader'];
-handler.command = /^(ttdl|tiktok|tt|tiktokdl)$/i;
-handler.limit = true;
+*© SASUKE TECH*`
 
-export default handler;
+    await conn.sendFile(m.chat, v.play, 'sasuke_tt.mp4', caption, m, false, { contextInfo: newsletter })
 
-function formatNumber(number) {
-	return number.toLocaleString();
+    await conn.sendMessage(m.chat, { delete: s.key }).catch(() => {})
+    await m.react('✅');
+
+  } catch(e) {
+    await conn.sendMessage(m.chat, { text: `❌ *خـطـا:* ${e.message || e}`, edit: s.key, contextInfo: newsletter })
+    console.log(e)
+    await m.react('❌')
+  }
 }
 
-function formatDuration(seconds) {
-	if (!seconds) return '00:00';
-	const m = Math.floor(seconds / 60)
-		.toString()
-		.padStart(2, '0');
-	const s = Math.floor(seconds % 60)
-		.toString()
-		.padStart(2, '0');
-	return `${m}:${s}`;
-}
+handler.help = ['tiktok <الـرابـط>']
+handler.tags = ['SASUKE', 'downloader'] 
+handler.command = ['tiktok', 'تيكتوك', 'sasuke_tt', 'tt']
+handler.limit = false
+export default handler
