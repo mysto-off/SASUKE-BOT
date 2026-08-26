@@ -2,7 +2,7 @@ import { watchFile, unwatchFile } from 'fs';
 import chalk from 'chalk';
 import { fileURLToPath } from 'url';
 
-global.pairingNumber = +212604840167;
+global.pairingNumber = +212604312662;
 global.owner = [['212710725533', 'ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ', true]];
 
 global.namebot = 'ᏚᎯᏚᏌᏦᎬ ᎿᎬᏨᎻ';
